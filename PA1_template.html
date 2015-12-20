@@ -220,17 +220,15 @@ dat.date.n &lt;- length(unique(act.d$date))
 dat.date.r &lt;- range(as.Date(act.d$date))
 </code></pre>
 
-<p>At this time we note, but do not correct, that some of the data is missing. We explore the data to understand the type and range of data.  We note that the data contains three columns: steps, date and interval. </p>
-
-<p>Their are 17568 values for the 5 minute intervals in the day and the range over 0, 2355. Therefore we see they are in the form hour*100+minute, the first interval is at 0 hours 0 minutes, and the final, 288-th interval, at 23 hours 55 minutes,.</p>
+<p>We explore the data to understand the type and range of data.  We note that the data contains three columns: steps, date and interval. There are 17568 values for the 5 minute intervals in the day and the range over 0, 2355. The hour and minutes are encoded as an integer by the formula hour*100+minute. For example, the first interval is encoded as 0, meaning 0 hours 0 minutes, and the final interval is encoded as 2355, meaning 23 hours 55 minutes,.</p>
 
 <p>The days are a consecutive sequence of 61 days ranging over 2012-10-01, 2012-11-30.</p>
 
 <h2>What is mean total number of steps taken per day?</h2>
 
-<p>Our first exploration is a histrogram of the number of steps the subject takes each day.</p>
+<p>Our first exploration is the general distribution of the number of steps the subject takes each day.</p>
 
-<p>We batch our data by date, and take the total number of steps each day. This is a statistical quantity of steps sampled over days.</p>
+<p>We batch our data by day, and take the total number of steps each day. This is a statistical sampling from the distribution of steps per day.</p>
 
 <pre><code class="r">days &lt;- unique(act.d$date)
 c &lt;- c()
@@ -242,7 +240,7 @@ df.c.mean &lt;- mean(df$c)
 df.c.median &lt;- median(df$c)
 </code></pre>
 
-<p>We plot the resulting data set using a histogram.  marking byt blue and red lines, respectively the mean and median of the data set, indexed by days. The mean number of steps per day, averaged over days, is marked by a red  line at 9354.23, and the median is marked by a green line at 10395.</p>
+<p>We plot the resulting sample using a histogram. The mean number of steps per day, averaged over days, is 9354.23, and is marked by a red line. The median is 10395 and is marked by a green line.</p>
 
 <pre><code class="r">g &lt;- ggplot(df,aes(x=c)) 
 g &lt;- g + geom_histogram(binwidth=range(c)[2]/15) + xlab(&quot;steps&quot;) + ylab(&quot;days&quot;)
@@ -255,9 +253,9 @@ g
 
 <h2>What is the average daily activity pattern?</h2>
 
-<p>We would like to understand the daily activity pattern. We consider an activity pattern to be the typically number of steps in an interval as the day proceeds. Therefore, we average each 5 minute interval across days, considering a day to be a random sample form the activity pattern distribution. We then plot them over the course of a day. </p>
+<p>We would like to understand the daily activity pattern. We consider an activity pattern to be the progression of step activity per interval as the day proceeds. We consider a day to be a random sample from the activity pattern distribution and we average over days. We then plot them over the course of a day. </p>
 
-<p>Note that the code makes use of an important property of the data that there are consistently 288 intervals reported in a day, and that they are reported in the same order for each day. To simplify the coding, non-available data items are set to zero. We shall return to this issue later in the report.</p>
+<p>Note that the code makes use of an important property of the data that there are consistently 288 intervals reported in a day, and that they are reported in the same order for each day. To simplify the coding, non-available data items are set to zero. We shall return to the issue of missing data later in the report.</p>
 
 <pre><code class="r">steps.na &lt;- is.na(act.d$steps)
 act.d[steps.na,]$steps &lt;- 0
@@ -285,12 +283,12 @@ g
 
 <h2>Inputing missing values</h2>
 
-<p>We return now to the issue of missing data points. These are of the form of missing step counts for a particular 5 minute interval. The total number of missing datapoints is 2304, out of 
+<p>We return now to the issue of missing data points. There are missing step counts for some 5 minute intervals. The total number of missing datapoints is 2304, out of 
 a total of 17568 datapoints. That is, about 
 13.11% of the
 data is missing.</p>
 
-<p>Our analysis up to this point have set these points to zero, or have effectively ignored them. We have various options to account for these missing points, but it seems reasonable to substitue a typical quantity, inferred from the rest of the data set, for the missing point. We have now a sample average for each 5 minute interval, treating each day as an unweighted and unbiased sample from among the daily patterns. We will use the 5 minute interval averaged over the days as a substitute for a missing data point.</p>
+<p>Our analysis up to this point have set these missing values to zero. We have various options to account for these missing values, but it seems reasonable to substitue a typical quantity, inferred from the rest of the data set, for the missing value. We have a sample average for each 5 minute interval, treating each day as an unweighted and unbiased sample from among the daily patterns. We will use the 5 minute interval averaged over the days as a substitute for a missing data point.</p>
 
 <pre><code class="r">for (d in days) {
     act.d[act.d$date==d,]$steps &lt;- ifelse(steps.na[act.d$date==d],a,act.d[act.d$date==d,]$step)
@@ -319,11 +317,11 @@ g
 <pre><code>## [1] &quot;mean = 10581.013706, median 10395.000000&quot;
 </code></pre>
 
-<p>It is understandable that raising zero values to the average will raise the new average, but not so much as the place the zeros beyond the middle value, hence the median is unchanged.</p>
+<p>It is understandable that raising zero values to the average will raise the new average, but not so much as to move the values beyond the middle value - hence the median is unchanged.</p>
 
 <h2>Are there differences in activity patterns between weekdays and weekends?</h2>
 
-<p>It is very natural to wonder if daily activity patterns is not uniform by days, and the most natural distinction is weekdays versus weekends. We therefore segment the data into these two categories and rerun the averaging for each category separately.</p>
+<p>It is very natural to wonder if daily activity patterns are not uniform by days. The most natural distinction is weekdays versus weekends. We therefore segment the data into these two categories and rerun the averaging for each category separately.</p>
 
 <p>As a techincal aside, the inference of day of week from date is complicated. We definte a predicate, is.weekend, that takes care of the details.</p>
 
@@ -355,7 +353,7 @@ a.wd &lt;- a.wd / a.wd.n
 a.we &lt;- a.we / a.we.n
 </code></pre>
 
-<p>To create the plots, we combine the weekend and weekday data into a single frame, using a new facet column to mark which data has been combined. We can then use R&#39;s faceting capabilities to join them into a gridded plot. This is a bit of data manipulation made easy by R.</p>
+<p>To create the plots, we combine the weekend and weekday data into a single frame, using a new column to mark the origin of each data row. We then use R&#39;s faceting capabilities to join them into a gridded plot.</p>
 
 <pre><code class="r">df&lt;-data.frame(x=c(1:len,1:len),y=c(a.wd,a.we),facet=c(rep(&quot;weekday&quot;,len),rep(&quot;weekend&quot;,len)))
 g &lt;- ggplot(df,aes(x=x,y=y))
@@ -371,7 +369,7 @@ g
 <ul>
 <li>The overall pattern of activity is similar between weekends and weekdays.</li>
 <li>Peak activity is noticably higher on weekdays.</li>
-<li>Weekday activity starts earlier, up until about 8 o&#39;clock.</li>
+<li>Weekday activity starts earlier, at about 6 o&#39;clock versus 8 o&#39;clock.</li>
 <li>Weekday activity has an additional late night peak.</li>
 <li>Otherwise weekend activity extends higher into the later hours.</li>
 </ul>

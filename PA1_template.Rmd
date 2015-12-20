@@ -29,17 +29,15 @@ dat.date.r <- range(as.Date(act.d$date))
 
 ```
 
-At this time we note, but do not correct, that some of the data is missing. We explore the data to understand the type and range of data.  We note that the data contains three columns: steps, date and interval. 
-
-Their are `r dat.interval.n` values for the 5 minute intervals in the day and the range over `r dat.interval.r`. Therefore we see they are in the form hour*100+minute, the first interval is at 0 hours 0 minutes, and the final, 288-th interval, at 23 hours 55 minutes,.
+We explore the data to understand the type and range of data.  We note that the data contains three columns: steps, date and interval. There are `r dat.interval.n` values for the 5 minute intervals in the day and the range over `r dat.interval.r`. The hour and minutes are encoded as an integer by the formula hour*100+minute. For example, the first interval is encoded as 0, meaning 0 hours 0 minutes, and the final interval is encoded as 2355, meaning 23 hours 55 minutes,.
 
 The days are a consecutive sequence of `r dat.date.n` days ranging over `r dat.date.r`.
 
 ## What is mean total number of steps taken per day?
 
-Our first exploration is a histrogram of the number of steps the subject takes each day.
+Our first exploration is the general distribution of the number of steps the subject takes each day.
 
-We batch our data by date, and take the total number of steps each day. This is a statistical quantity of steps sampled over days.
+We batch our data by day, and take the total number of steps each day. This is a statistical sampling from the distribution of steps per day.
 
 ```{r}
 days <- unique(act.d$date)
@@ -52,7 +50,7 @@ df.c.mean <- mean(df$c)
 df.c.median <- median(df$c)
 ```
 
-We plot the resulting data set using a histogram.  marking byt blue and red lines, respectively the mean and median of the data set, indexed by days. The mean number of steps per day, averaged over days, is marked by a red  line at `r round(df.c.mean,digits=2)`, and the median is marked by a green line at `r df.c.median`.
+We plot the resulting sample using a histogram. The mean number of steps per day, averaged over days, is `r round(df.c.mean,digits=2)`, and is marked by a red line. The median is `r df.c.median` and is marked by a green line.
 
 ```{r}
 g <- ggplot(df,aes(x=c)) 
@@ -64,9 +62,9 @@ g
 
 ## What is the average daily activity pattern?
 
-We would like to understand the daily activity pattern. We consider an activity pattern to be the typically number of steps in an interval as the day proceeds. Therefore, we average each 5 minute interval across days, considering a day to be a random sample form the activity pattern distribution. We then plot them over the course of a day. 
+We would like to understand the daily activity pattern. We consider an activity pattern to be the progression of step activity per interval as the day proceeds. We consider a day to be a random sample from the activity pattern distribution and we average over days. We then plot them over the course of a day. 
 
-Note that the code makes use of an important property of the data that there are consistently 288 intervals reported in a day, and that they are reported in the same order for each day. To simplify the coding, non-available data items are set to zero. We shall return to this issue later in the report.
+Note that the code makes use of an important property of the data that there are consistently 288 intervals reported in a day, and that they are reported in the same order for each day. To simplify the coding, non-available data items are set to zero. We shall return to the issue of missing data later in the report.
 
 
 ```{r}
@@ -95,12 +93,12 @@ The 5-minute interval at which the maximum is achieved is `r time.hour`:`r time.
 
 ## Inputing missing values
 
-We return now to the issue of missing data points. These are of the form of missing step counts for a particular 5 minute interval. The total number of missing datapoints is `r sum(steps.na)`, out of 
+We return now to the issue of missing data points. There are missing step counts for some 5 minute intervals. The total number of missing datapoints is `r sum(steps.na)`, out of 
 a total of `r length(steps.na)` datapoints. That is, about 
 `r round(sum(steps.na)/length(steps.na)*100,digits=2)`% of the
 data is missing.
 
-Our analysis up to this point have set these points to zero, or have effectively ignored them. We have various options to account for these missing points, but it seems reasonable to substitue a typical quantity, inferred from the rest of the data set, for the missing point. We have now a sample average for each 5 minute interval, treating each day as an unweighted and unbiased sample from among the daily patterns. We will use the 5 minute interval averaged over the days as a substitute for a missing data point.
+Our analysis up to this point have set these missing values to zero. We have various options to account for these missing values, but it seems reasonable to substitue a typical quantity, inferred from the rest of the data set, for the missing value. We have a sample average for each 5 minute interval, treating each day as an unweighted and unbiased sample from among the daily patterns. We will use the 5 minute interval averaged over the days as a substitute for a missing data point.
 
 ```{r}
 for (d in days) {
@@ -126,11 +124,11 @@ g
 print(sprintf("mean = %f, median %f",mean(c),median(c)))
 ```
 
-It is understandable that raising zero values to the average will raise the new average, but not so much as the place the zeros beyond the middle value, hence the median is unchanged.
+It is understandable that raising zero values to the average will raise the new average, but not so much as to move the values beyond the middle value - hence the median is unchanged.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-It is very natural to wonder if daily activity patterns is not uniform by days, and the most natural distinction is weekdays versus weekends. We therefore segment the data into these two categories and rerun the averaging for each category separately.
+It is very natural to wonder if daily activity patterns are not uniform by days. The most natural distinction is weekdays versus weekends. We therefore segment the data into these two categories and rerun the averaging for each category separately.
 
 As a techincal aside, the inference of day of week from date is complicated. We definte a predicate, is.weekend, that takes care of the details.
 
@@ -163,7 +161,7 @@ a.wd <- a.wd / a.wd.n
 a.we <- a.we / a.we.n
 ```
 
-To create the plots, we combine the weekend and weekday data into a single frame, using a new facet column to mark which data has been combined. We can then use R's faceting capabilities to join them into a gridded plot. This is a bit of data manipulation made easy by R.
+To create the plots, we combine the weekend and weekday data into a single frame, using a new column to mark the origin of each data row. We then use R's faceting capabilities to join them into a gridded plot.
 
 ```{r}
 df<-data.frame(x=c(1:len,1:len),y=c(a.wd,a.we),facet=c(rep("weekday",len),rep("weekend",len)))
@@ -177,7 +175,7 @@ We note the following:
 
 * The overall pattern of activity is similar between weekends and weekdays.
 * Peak activity is noticably higher on weekdays.
-* Weekday activity starts earlier, up until about 8 o'clock.
+* Weekday activity starts earlier, at about 6 o'clock versus 8 o'clock.
 * Weekday activity has an additional late night peak.
 * Otherwise weekend activity extends higher into the later hours.
 
